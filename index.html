@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Yes · No · Maybe</title>
+  <style>
+    :root {
+      --bg: #0f0f17;
+      --card: #17172a;
+      --card2: #1f1f35;
+      --border: #2d2d4a;
+      --text: #e6e6f0;
+      --muted: #7a7a9a;
+      --accent: #8b5cf6;
+      --accent-dark: #7c3aed;
+      --yes: #22c55e;
+      --no: #6b7280;
+      --maybe: #f59e0b;
+      --match-bg: rgba(250, 204, 21, 0.08);
+      --r: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    #app {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .screen { display: none; min-height: 100vh; padding: 44px 0 60px; }
+    .screen.active { display: block; }
+
+    /* ── Header ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+      margin: 0 0 6px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .card > p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    /* ── Form ── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--muted); }
+    .field textarea {
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 90px;
+      color: #a0ffa0;
+      background: #0a0a12;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; margin-top: 4px; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 7px 14px;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Error ── */
+    .error {
+      display: none;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 0.84rem;
+      padding: 9px 14px;
+      margin-top: 12px;
+    }
+    .error.show { display: block; }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 14px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Code block ── */
+    .code-block {
+      background: #0a0a12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.75rem;
+      line-height: 1.7;
+      color: #a0ffa0;
+      white-space: pre;
+      overflow-x: auto;
+      margin: 0 0 10px;
+    }
+
+    /* ── Session bar ── */
+    .session-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 15, 23, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      margin: 0 -16px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      gap: 10px;
+    }
+    .session-bar .left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .session-code {
+      font-family: 'Menlo', 'Monaco', monospace;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+    }
+    .name-chip {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex;
+      gap: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin: 14px 0;
+      overflow: hidden;
+    }
+    .stat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 8px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .stat-lbl {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .stat.s-yes .stat-val { color: var(--yes); }
+    .stat.s-curious .stat-val { color: var(--maybe); }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin: 0 0 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+      font-family: inherit;
+    }
+    .filter-btn:hover { color: var(--text); border-color: var(--accent); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── Category ── */
+    .category { margin-bottom: 28px; }
+    .cat-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    /* ── Item ── */
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 8px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .item.hidden { display: none; }
+    .item.matched { background: var(--match-bg); }
+    .item-text {
+      flex: 1;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .item-btns {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    /* ── Vote buttons ── */
+    .vbtn {
+      width: 54px;
+      height: 34px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.12s;
+      font-family: inherit;
+    }
+    .vbtn:hover { transform: translateY(-1px); }
+    .vbtn.v-yes:hover  { border-color: var(--yes);   color: var(--yes);   background: rgba(34,197,94,0.1); }
+    .vbtn.v-no:hover   { border-color: var(--no);    color: var(--no);    background: rgba(107,114,128,0.1); }
+    .vbtn.v-maybe:hover{ border-color: var(--maybe); color: var(--maybe); background: rgba(245,158,11,0.1); }
+    .vbtn.v-yes.on  { border-color: var(--yes);   color: var(--yes);   background: rgba(34,197,94,0.15); }
+    .vbtn.v-no.on   { border-color: var(--no);    color: var(--no);    background: rgba(107,114,128,0.15); }
+    .vbtn.v-maybe.on{ border-color: var(--maybe); color: var(--maybe); background: rgba(245,158,11,0.15); }
+
+    /* ── Match pill ── */
+    .match-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .match-pill.both-yes    { background: rgba(34,197,94,0.15);  color: var(--yes); }
+    .match-pill.both-curious{ background: rgba(245,158,11,0.15); color: var(--maybe); }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+    }
+    .empty h3 { color: var(--text); margin-bottom: 6px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      color: var(--text);
+      z-index: 100;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Save indicator ── */
+    #save-dot {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 50;
+    }
+    #save-dot.on { opacity: 1; }
+
+    /* ── Privacy note ── */
+    .privacy-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 0;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 380px) {
+      .vbtn { width: 46px; height: 30px; font-size: 0.66rem; }
+      .item-text { font-size: 0.87rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast"></div>
+  <div id="save-dot"></div>
+  <div id="app"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+
+const CATEGORIES = [
+  {
+    name: 'Intimacy & Connection',
+    items: [
+      'Sensual full-body massage',
+      'Sharing sexual fantasies verbally',
+      'Reading erotica together',
+      'Extended foreplay (30+ minutes)',
+      'Slow intentional eye contact during intimacy',
+      'Bathing or showering together',
+      'Giving honest feedback on what feels best',
+      'Make-out session with no further expectations',
+      'Sleeping naked together',
+      'Sending an explicit or flirtatious message'
+    ]
+  },
+  {
+    name: 'Positions & Technique',
+    items: [
+      'Oral sex — giving',
+      'Oral sex — receiving',
+      'Edging / orgasm control',
+      'Tantric breathing / slow sex',
+      'Sex in a different room of the home',
+      'Sex outdoors or in a semi-public place',
+      'Trying a new position from a guide',
+      'Mutual masturbation — watching each other',
+      '69'
+    ]
+  },
+  {
+    name: 'Toys & Accessories',
+    items: [
+      'Vibrator or wand massager',
+      'Couples vibrator (worn during sex)',
+      'Butt plug',
+      'Silk blindfold',
+      'Soft restraints or handcuffs',
+      'Wax play',
+      'Feather tickler or sensory kit',
+      'Remote-control toy',
+      'Strap-on / pegging'
+    ]
+  },
+  {
+    name: 'Power & Sensation Play',
+    items: [
+      'Light dominance / submission dynamic',
+      'One partner takes full control for a session',
+      'Roleplay scenario (strangers, characters, etc.)',
+      'Costume, lingerie, or underwear surprise',
+      'Spanking',
+      'Hair pulling',
+      'Dirty talk',
+      'Bondage with rope or tape',
+      'Collaring or leash play',
+      'Service / worship dynamic'
+    ]
+  },
+  {
+    name: 'Exploration & Fantasy',
+    items: [
+      'Sex in front of a mirror',
+      'Recording yourselves (private, deleted after)',
+      'Erotic board game or card set',
+      'Themed date night with a sexual payoff',
+      'Watching adult content together',
+      'Acting out a specific shared fantasy',
+      'Sex in a hotel or away from home',
+      'Choosing a new toy together online',
+      'Building a shared sexual bucket list',
+      'Sharing fantasies about others (no action required)'
+    ]
+  },
+  {
+    name: 'Anal Play',
+    items: [
+      'Anal fingering — giving',
+      'Anal fingering — receiving',
+      'Anal sex — giving',
+      'Anal sex — receiving',
+      'Prostate massage',
+      'Internal G-spot / anal stimulation',
+      'Rimming'
+    ]
+  }
+];
+
+const SQL = `create table if not exists sessions (
+  id         text primary key,
+  created_at timestamptz default now()
+);
+
+create table if not exists votes (
+  session_id text references sessions(id),
+  partner    text,
+  item_id    text,
+  vote       text,
+  updated_at timestamptz default now(),
+  primary key (session_id, partner, item_id)
+);
+
+alter table sessions enable row level security;
+alter table votes    enable row level security;
+
+create policy "open" on sessions for all using (true) with check (true);
+create policy "open" on votes    for all using (true) with check (true);`;
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+const S = {
+  url: '',
+  key: '',
+  sessionId: '',
+  partner: '',
+  name: '',
+  myVotes: {},
+  partnerVotes: {},
+  filter: 'all',
+  pending: new Set(),
+  deletes: new Set(),
+  debounce: null,
+  pollTimer: null
+};
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+
+function rid(n = 8) {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from({ length: n }, () => c[Math.floor(Math.random() * c.length)]).join('');
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg, ms = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function setSaving(on) {
+  document.getElementById('save-dot').classList.toggle('on', on);
+}
+
+function inviteUrl() {
+  return `${location.origin}${location.pathname}?session=${S.sessionId}`;
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(inviteUrl())
+    .then(() => toast('Invite link copied!'))
+    .catch(() => prompt('Copy this link and send it to your partner:', inviteUrl()));
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+// ═══════════════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════════════
+
+async function sb(path, method = 'GET', body = null, extra = {}) {
+  const headers = {
+    apikey: S.key,
+    Authorization: `Bearer ${S.key}`,
+    'Content-Type': 'application/json',
+    ...extra
+  };
+  const opts = { method, headers };
+  if (body !== null) opts.body = JSON.stringify(body);
+  const res = await fetch(`${S.url}/rest/v1/${path}`, opts);
+  if (res.status === 204) return null;
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function testConn() {
+  await sb('sessions?select=id&limit=1');
+}
+
+async function createSession(id) {
+  await sb('sessions', 'POST', { id }, { Prefer: 'return=minimal' });
+}
+
+async function sessionExists(id) {
+  const rows = await sb(`sessions?id=eq.${encodeURIComponent(id)}&select=id`);
+  return rows && rows.length > 0;
+}
+
+async function loadMyVotes() {
+  const rows = await sb(`votes?session_id=eq.${S.sessionId}&partner=eq.${S.partner}&select=item_id,vote`);
+  S.myVotes = {};
+  for (const r of rows) S.myVotes[r.item_id] = r.vote;
+}
+
+async function loadPartnerVotes() {
+  const pk = S.partner === 'p1' ? 'p2' : 'p1';
+  const rows = await sb(`votes?session_id=eq.${S.sessionId}&partner=eq.${pk}&select=item_id,vote`);
+  S.partnerVotes = {};
+  for (const r of rows) S.partnerVotes[r.item_id] = r.vote;
+}
+
+async function flushVotes() {
+  if (!S.pending.size && !S.deletes.size) return;
+  setSaving(true);
+
+  const upsertIds = [...S.pending];
+  const deleteIds = [...S.deletes];
+  S.pending.clear();
+  S.deletes.clear();
+
+  const work = [];
+
+  if (upsertIds.length) {
+    const body = upsertIds.map(id => ({
+      session_id: S.sessionId,
+      partner: S.partner,
+      item_id: id,
+      vote: S.myVotes[id],
+      updated_at: new Date().toISOString()
+    }));
+    work.push(sb('votes', 'POST', body, { Prefer: 'resolution=merge-duplicates,return=minimal' }));
+  }
+
+  for (const id of deleteIds) {
+    work.push(sb(
+      `votes?session_id=eq.${S.sessionId}&partner=eq.${S.partner}&item_id=eq.${encodeURIComponent(id)}`,
+      'DELETE', null, { Prefer: 'return=minimal' }
+    ));
+  }
+
+  try {
+    await Promise.all(work);
+  } catch (e) {
+    upsertIds.forEach(id => S.pending.add(id));
+    deleteIds.forEach(id => S.deletes.add(id));
+    console.warn('Save failed, will retry:', e.message);
+  } finally {
+    setSaving(false);
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(S.debounce);
+  S.debounce = setTimeout(flushVotes, 600);
+}
+
+// ═══════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════
+
+function calcStats() {
+  let bothYes = 0, bothCurious = 0, myCount = 0;
+  const partnerCount = Object.keys(S.partnerVotes).length;
+  CATEGORIES.forEach((cat, ci) => {
+    cat.items.forEach((_, ii) => {
+      const id = `c${ci}-${ii}`;
+      const mv = S.myVotes[id], pv = S.partnerVotes[id];
+      if (mv) myCount++;
+      if (mv === 'yes' && pv === 'yes') bothYes++;
+      if ((mv === 'yes' || mv === 'maybe') && (pv === 'yes' || pv === 'maybe')) bothCurious++;
+    });
+  });
+  return { bothYes, bothCurious, myCount, partnerCount };
+}
+
+function isBothYes(id) { return S.myVotes[id] === 'yes' && S.partnerVotes[id] === 'yes'; }
+function isBothCurious(id) {
+  const mv = S.myVotes[id], pv = S.partnerVotes[id];
+  return (mv === 'yes' || mv === 'maybe') && (pv === 'yes' || pv === 'maybe');
+}
+function isVisible(id) {
+  switch (S.filter) {
+    case 'both-yes':     return isBothYes(id);
+    case 'both-curious': return isBothCurious(id);
+    case 'my-votes':     return !!S.myVotes[id];
+    default:             return true;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('s-' + id);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+
+function renderApp() {
+  document.getElementById('app').innerHTML =
+    screenConfig() + screenLanding() + screenJoin() + screenVoting();
+}
+
+function screenConfig() {
+  return `
+<div id="s-config" class="screen">
+  <div class="hero"><h1>Yes · No · Maybe</h1><p>Private couples checklist</p></div>
+  <div class="card">
+    <h2>Connect to Supabase</h2>
+    <p>Your answers are stored in your own private database. Create a free project at supabase.com and paste your credentials below. Nothing is sent anywhere else.</p>
+    <div class="field">
+      <label>Project URL</label>
+      <input id="cfg-url" type="url" placeholder="https://xxxx.supabase.co" value="${esc(S.url)}">
+    </div>
+    <div class="field">
+      <label>Anon / Public Key</label>
+      <input id="cfg-key" type="text" placeholder="eyJhbGci…" value="${esc(S.key)}">
+    </div>
+    <button class="btn btn-primary" onclick="onConfigSave()">Save &amp; Continue</button>
+    <div id="cfg-err" class="error"></div>
+    <div class="divider">One-time database setup</div>
+    <p style="color:var(--muted);font-size:0.82rem;margin:0 0 10px">Run this SQL once in your Supabase SQL Editor (Dashboard → SQL Editor):</p>
+    <div class="code-block">${esc(SQL)}</div>
+    <button class="btn btn-ghost" style="width:100%" onclick="copySQL()">Copy SQL</button>
+  </div>
+</div>`;
+}
+
+function screenLanding() {
+  return `
+<div id="s-landing" class="screen">
+  <div class="hero"><h1>Yes · No · Maybe</h1><p>Private couples checklist</p></div>
+  <div class="card">
+    <h2>Start a session</h2>
+    <p>Enter your name to create a private session. You'll get a link to share with your partner — they vote independently and neither of you sees the other's answers.</p>
+    <div class="field">
+      <label>Your name</label>
+      <input id="land-name" type="text" placeholder="First name" maxlength="30" value="${esc(S.name)}">
+    </div>
+    <button class="btn btn-primary" onclick="onCreateSession()">Create session</button>
+    <div id="land-err" class="error"></div>
+  </div>
+  <div style="text-align:center;margin-top:12px">
+    <button class="btn btn-ghost" onclick="show('config')">Change Supabase credentials</button>
+  </div>
+</div>`;
+}
+
+function screenJoin() {
+  return `
+<div id="s-join" class="screen">
+  <div class="hero"><h1>Yes · No · Maybe</h1><p>You've been invited</p></div>
+  <div class="card">
+    <h2>Join session</h2>
+    <p>Your partner has created a session. Enter your name to join and vote independently. You won't see their choices — only mutual matches will be revealed.</p>
+    <div class="field">
+      <label>Your name</label>
+      <input id="join-name" type="text" placeholder="First name" maxlength="30" value="${esc(S.name)}">
+    </div>
+    <button class="btn btn-primary" onclick="onJoinSession()">Join &amp; start voting</button>
+    <div id="join-err" class="error"></div>
+  </div>
+  <div style="text-align:center;margin-top:12px">
+    <button class="btn btn-ghost" onclick="show('config')">Change Supabase credentials</button>
+  </div>
+</div>`;
+}
+
+function screenVoting() {
+  return `
+<div id="s-voting" class="screen" style="padding-top:0">
+  <div class="session-bar">
+    <div class="left">
+      <span>Session: <span class="session-code" id="s-code">${esc(S.sessionId)}</span></span>
+      <span class="name-chip" id="s-name">${esc(S.name)}</span>
+    </div>
+    <button class="btn btn-ghost" style="padding:5px 12px;font-size:0.78rem" onclick="copyLink()">Copy invite link</button>
+  </div>
+
+  <div style="padding-top:14px">
+    <div class="stats-bar" id="stats"></div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-f="all"          onclick="setFilter('all')">All</button>
+      <button class="filter-btn"        data-f="both-yes"     onclick="setFilter('both-yes')">Both Yes</button>
+      <button class="filter-btn"        data-f="both-curious" onclick="setFilter('both-curious')">Both Curious</button>
+      <button class="filter-btn"        data-f="my-votes"     onclick="setFilter('my-votes')">My votes</button>
+    </div>
+
+    <div class="privacy-note">Your partner cannot see your individual votes — only mutual matches are shown to both of you.</div>
+
+    <div id="cats">${renderCategories()}</div>
+  </div>
+</div>`;
+}
+
+function renderCategories() {
+  return CATEGORIES.map((cat, ci) => `
+    <div class="category" id="cat-${ci}">
+      <div class="cat-header">${esc(cat.name)}</div>
+      ${cat.items.map((item, ii) => {
+        const id = `c${ci}-${ii}`;
+        return `
+        <div class="item" id="item-${id}">
+          <div class="item-text">${esc(item)}</div>
+          <div class="match-pill" id="pill-${id}" style="display:none"></div>
+          <div class="item-btns">
+            <button class="vbtn v-yes"   onclick="onVote('${id}','yes')">YES</button>
+            <button class="vbtn v-no"    onclick="onVote('${id}','no')">NO</button>
+            <button class="vbtn v-maybe" onclick="onVote('${id}','maybe')">MAYBE</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// UI UPDATES
+// ═══════════════════════════════════════════════════════
+
+function updateStats() {
+  const { bothYes, bothCurious, myCount, partnerCount } = calcStats();
+  const el = document.getElementById('stats');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat s-yes">
+      <div class="stat-val">${bothYes}</div>
+      <div class="stat-lbl">Both Yes</div>
+    </div>
+    <div class="stat s-curious">
+      <div class="stat-val">${bothCurious}</div>
+      <div class="stat-lbl">Both Curious</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">${myCount}</div>
+      <div class="stat-lbl">You voted</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">${partnerCount}</div>
+      <div class="stat-lbl">Partner voted</div>
+    </div>`;
+}
+
+function updateButtons(id) {
+  const v = S.myVotes[id];
+  const el = document.getElementById('item-' + id);
+  if (!el) return;
+  el.querySelectorAll('.vbtn').forEach(btn => {
+    const bv = btn.classList.contains('v-yes') ? 'yes' : btn.classList.contains('v-no') ? 'no' : 'maybe';
+    btn.classList.toggle('on', bv === v);
+  });
+}
+
+function updateMatchPill(id) {
+  const pill = document.getElementById('pill-' + id);
+  if (!pill) return;
+  if (isBothYes(id)) {
+    pill.textContent = 'Match';
+    pill.className = 'match-pill both-yes';
+    pill.style.display = '';
+  } else if (isBothCurious(id)) {
+    pill.textContent = 'Curious';
+    pill.className = 'match-pill both-curious';
+    pill.style.display = '';
+  } else {
+    pill.style.display = 'none';
+  }
+}
+
+function applyFilter() {
+  let anyVisible = false;
+  CATEGORIES.forEach((cat, ci) => {
+    let catVisible = false;
+    cat.items.forEach((_, ii) => {
+      const id = `c${ci}-${ii}`;
+      const vis = isVisible(id);
+      const el = document.getElementById('item-' + id);
+      if (el) el.classList.toggle('hidden', !vis);
+      if (vis) { catVisible = true; anyVisible = true; }
+
+      const itemEl = document.getElementById('item-' + id);
+      if (itemEl) itemEl.classList.toggle('matched', isBothYes(id) || isBothCurious(id));
+
+      updateMatchPill(id);
+    });
+    const catEl = document.getElementById('cat-' + ci);
+    if (catEl) catEl.style.display = catVisible ? '' : 'none';
+  });
+
+  let empty = document.getElementById('cat-empty');
+  if (!anyVisible && S.filter !== 'all') {
+    if (!empty) {
+      const div = document.createElement('div');
+      div.id = 'cat-empty';
+      div.className = 'empty';
+      div.innerHTML = '<h3>No matches yet</h3><p>Come back once your partner has voted, or switch to All.</p>';
+      document.getElementById('cats').appendChild(div);
+    }
+  } else if (empty) {
+    empty.remove();
+  }
+}
+
+function refreshVotingUI() {
+  CATEGORIES.forEach((cat, ci) => {
+    cat.items.forEach((_, ii) => {
+      const id = `c${ci}-${ii}`;
+      updateButtons(id);
+    });
+  });
+  updateStats();
+  applyFilter();
+}
+
+// ═══════════════════════════════════════════════════════
+// HANDLERS
+// ═══════════════════════════════════════════════════════
+
+async function onConfigSave() {
+  const url = (document.getElementById('cfg-url').value || '').trim().replace(/\/$/, '');
+  const key = (document.getElementById('cfg-key').value || '').trim();
+  if (!url || !key) { showError('cfg-err', 'Please enter both the project URL and the anon key.'); return; }
+
+  S.url = url;
+  S.key = key;
+
+  try {
+    await testConn();
+  } catch (e) {
+    showError('cfg-err', 'Connection failed. Double-check the URL and key, and make sure the SQL has been run.');
+    S.url = localStorage.getItem('ynm_url') || '';
+    S.key = localStorage.getItem('ynm_key') || '';
+    return;
+  }
+
+  localStorage.setItem('ynm_url', url);
+  localStorage.setItem('ynm_key', key);
+
+  const pending = sessionStorage.getItem('ynm_pending');
+  show(pending ? 'join' : 'landing');
+}
+
+async function onCreateSession() {
+  const name = (document.getElementById('land-name').value || '').trim();
+  if (!name) { showError('land-err', 'Please enter your name.'); return; }
+
+  const id = rid();
+  try {
+    await createSession(id);
+  } catch (e) {
+    showError('land-err', 'Could not create session. Check your Supabase connection.');
+    return;
+  }
+
+  S.sessionId = id;
+  S.partner = 'p1';
+  S.name = name;
+  persist();
+  await enterVoting();
+  toast('Session created! Tap "Copy invite link" to share with your partner.');
+}
+
+async function onJoinSession() {
+  const name = (document.getElementById('join-name').value || '').trim();
+  if (!name) { showError('join-err', 'Please enter your name.'); return; }
+
+  const sid = sessionStorage.getItem('ynm_pending') || S.sessionId;
+  if (!sid) { showError('join-err', 'No session found. Ask your partner for a new link.'); return; }
+
+  try {
+    if (!await sessionExists(sid)) {
+      showError('join-err', 'Session not found. The link may be expired or invalid.');
+      return;
+    }
+  } catch (e) {
+    showError('join-err', 'Could not connect. Check your Supabase credentials.');
+    return;
+  }
+
+  S.sessionId = sid;
+  S.partner = 'p2';
+  S.name = name;
+  persist();
+  sessionStorage.removeItem('ynm_pending');
+  history.replaceState({}, '', location.pathname);
+  await enterVoting();
+}
+
+function onVote(id, vote) {
+  if (S.myVotes[id] === vote) {
+    delete S.myVotes[id];
+    S.pending.delete(id);
+    S.deletes.add(id);
+  } else {
+    S.myVotes[id] = vote;
+    S.deletes.delete(id);
+    S.pending.add(id);
+  }
+  scheduleSave();
+  updateButtons(id);
+  updateStats();
+  applyFilter();
+}
+
+function setFilter(f) {
+  S.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  applyFilter();
+}
+
+function copySQL() {
+  navigator.clipboard.writeText(SQL)
+    .then(() => toast('SQL copied!'))
+    .catch(() => toast('Select the SQL block and copy manually.'));
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════════════════
+
+function persist() {
+  localStorage.setItem('ynm_url',     S.url);
+  localStorage.setItem('ynm_key',     S.key);
+  localStorage.setItem('ynm_session', S.sessionId);
+  localStorage.setItem('ynm_partner', S.partner);
+  localStorage.setItem('ynm_name',    S.name);
+}
+
+async function enterVoting() {
+  const codeEl = document.getElementById('s-code');
+  const nameEl = document.getElementById('s-name');
+  if (codeEl) codeEl.textContent = S.sessionId;
+  if (nameEl) nameEl.textContent = S.name;
+
+  try {
+    await loadMyVotes();
+    await loadPartnerVotes();
+  } catch (e) {
+    toast('Could not load votes. Check connection.');
+    show('config');
+    return;
+  }
+
+  show('voting');
+  refreshVotingUI();
+  startPolling();
+}
+
+function startPolling() {
+  clearInterval(S.pollTimer);
+  S.pollTimer = setInterval(async () => {
+    try {
+      await loadPartnerVotes();
+      updateStats();
+      applyFilter();
+    } catch (_) {}
+  }, 15000);
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+
+function init() {
+  S.url       = localStorage.getItem('ynm_url')     || '';
+  S.key       = localStorage.getItem('ynm_key')     || '';
+  S.sessionId = localStorage.getItem('ynm_session') || '';
+  S.partner   = localStorage.getItem('ynm_partner') || '';
+  S.name      = localStorage.getItem('ynm_name')    || '';
+
+  const params = new URLSearchParams(location.search);
+  const urlSession = params.get('session');
+
+  renderApp();
+
+  if (!S.url || !S.key) {
+    if (urlSession) sessionStorage.setItem('ynm_pending', urlSession);
+    show('config');
+    return;
+  }
+
+  if (urlSession) {
+    if (urlSession === S.sessionId && S.partner) {
+      enterVoting();
+    } else {
+      sessionStorage.setItem('ynm_pending', urlSession);
+      show('join');
+    }
+    return;
+  }
+
+  if (S.sessionId && S.partner) {
+    enterVoting();
+    return;
+  }
+
+  show('landing');
+}
+
+// Keyboard submit
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const id = document.activeElement && document.activeElement.id;
+  if (id === 'cfg-url' || id === 'cfg-key') onConfigSave();
+  else if (id === 'land-name') onCreateSession();
+  else if (id === 'join-name') onJoinSession();
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
