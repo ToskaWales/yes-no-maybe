@@ -621,7 +621,12 @@ async function sb(path, method = 'GET', body = null, extra = {}) {
 }
 
 async function testConn() {
-  await sb('sessions?select=id&limit=1');
+  // Only check that credentials are valid — don't require tables to exist yet
+  const res = await fetch(`${S.url}/rest/v1/`, {
+    headers: { apikey: S.key, Authorization: `Bearer ${S.key}` }
+  });
+  if (res.status === 401 || res.status === 403) throw new Error('Invalid credentials');
+  // Any other response (including 404 if tables not yet created) means creds are fine
 }
 
 async function createSession(id) {
@@ -971,7 +976,7 @@ async function onConfigSave() {
   try {
     await testConn();
   } catch (e) {
-    showError('cfg-err', 'Connection failed. Double-check the URL and key, and make sure the SQL has been run.');
+    showError('cfg-err', 'Invalid URL or key. Make sure you copied them correctly from Supabase Settings → API.');
     S.url = localStorage.getItem('ynm_url') || '';
     S.key = localStorage.getItem('ynm_key') || '';
     return;
