@@ -997,7 +997,12 @@ async function onCreateSession() {
   try {
     await createSession(id);
   } catch (e) {
-    showError('land-err', 'Could not create session. Check your Supabase connection.');
+    const msg = e.message || '';
+    if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('42P01')) {
+      showError('land-err', 'Tables not found — you need to run the SQL setup in Supabase first. Go to your Supabase project → SQL Editor, paste the SQL from the setup screen, and click Run.');
+    } else {
+      showError('land-err', 'Could not create session: ' + msg);
+    }
     return;
   }
 
