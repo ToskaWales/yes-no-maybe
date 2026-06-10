@@ -760,7 +760,8 @@ function screenConfig() {
     <p>Your answers are stored in your own private database. Create a free project at supabase.com and paste your credentials below. Nothing is sent anywhere else.</p>
     <div class="field">
       <label>Project URL</label>
-      <input id="cfg-url" type="url" placeholder="https://xxxx.supabase.co" value="${esc(S.url)}">
+      <input id="cfg-url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" value="${esc(S.url)}">
+      <small style="color:var(--muted);font-size:0.75rem">Found in Supabase → Settings → API → Project URL</small>
     </div>
     <div class="field">
       <label>Anon / Public Key</label>
@@ -971,6 +972,10 @@ async function onConfigSave() {
   const url = (document.getElementById('cfg-url').value || '').trim().replace(/\/$/, '');
   const key = (document.getElementById('cfg-key').value || '').trim();
   if (!url || !key) { showError('cfg-err', 'Please enter both the project URL and the anon key.'); return; }
+  if (!url.includes('.supabase.co')) {
+    showError('cfg-err', 'The URL looks wrong. It must be in the format: https://xxxxxxxxxxxx.supabase.co — find it in Supabase → Settings → API → Project URL.');
+    return;
+  }
 
   S.url = url;
   S.key = key;
