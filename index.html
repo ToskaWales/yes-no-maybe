@@ -535,6 +535,8 @@ create table if not exists votes (
 alter table sessions enable row level security;
 alter table votes    enable row level security;
 
+drop policy if exists "open" on sessions;
+drop policy if exists "open" on votes;
 create policy "open" on sessions for all using (true) with check (true);
 create policy "open" on votes    for all using (true) with check (true);`;
 
